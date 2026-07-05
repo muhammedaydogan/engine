@@ -39,6 +39,7 @@
 - **FR-3.1 (MCP Client):** Uygulama, konfigürasyonda tanımlı harici MCP server'lara bağlanıp onların tool'larını kullanabilmeli (stdio ve HTTP/SSE transport).
 - **FR-3.2 (MCP Server):** Uygulama kendisini dışarıya MCP server olarak sunabilmeli; böylece Claude Code / Claude Desktop / başka agent'lar bu container'ı tek bir MCP olarak ekleyip KB'ye ve tool'larına erişebilmeli. Sunulacak asgari tool'lar: `queryKnowledgeBase`, `askAgent` (talimatlı üretim), `uploadFile`/`addSource`, `listSources`.
 - **FR-3.3** MCP tanımları önden (config dosyası) veya sonradan (`addMCP` endpoint'i) yapılabilmeli. `addMCP` → V2.
+- **FR-3.4 (Kapalı ağ / air-gap):** stdio tipi MCP'ler genelde `npx`/`uvx` ile ilk çalıştırmada paket indirir; internetsiz ortamda bu çalışmaz. Bu yüzden MCP bağımlılıkları **build sırasında imaja gömülebilmeli** (proje imajının Dockerfile'ında `npm install`/`pip install` katmanı); runtime'da hiçbir paket indirme varsayımı olmamalı. Container, imaja gömülü MCP binary/script'ini doğrudan çalıştırabilmeli.
 
 ### FR-4: Repo Erişimi
 - **FR-4.1** Git repo'ları (HTTPS/SSH, token'lı private repo dahil) clone edilip taranabilmeli.
@@ -61,26 +62,22 @@
 - **FR-7.3** Servis kimlik doğrulaması (API key, bearer token) config'den verilebilmeli.
 - **FR-7.4** Alternatif/kolay yol: Spring AI servisi kendini MCP server olarak sunuyorsa (Spring AI'ın MCP server desteği mevcut), FR-3.1 üzerinden bağlanmak yeterli — ayrı bir mekanizma gerekmez. **Öneri: önce bu yol denenmeli.**
 
-### FR-8: Azure DevOps / Jira
-- **FR-8.1** Azure DevOps ve Jira bağlantısı yapılabilmeli (work item okuma/yazma, wiki, PR bilgisi vb.).
-- **FR-8.2** Her ikisinin de hazır **resmi/topluluk MCP server'ları mevcut** (Atlassian Remote MCP, Azure DevOps MCP). Bu yüzden özel konektör yazılmamalı; FR-3.1 (MCP client) üzerinden config ile bağlanmalı. Önden = config dosyasına yazılır; sonradan = `addMCP` (V2).
+### FR-8: Doküman Üretimi (YGÖ senaryosu)
+- **FR-8.1** KB'deki şablon dokümanlar referans alınarak, verilen proje bilgileriyle yeni doküman üretilebilmeli.
+- **FR-8.2** Çıktı formatı belirlenebilmeli: en azından Markdown; **docx çıktı** kurumsal senaryoda neredeyse kesin ihtiyaç olacaktır → V1.5'e alınmalı (Pandoc veya python-docx ile).
+- **FR-8.3** Uzun dokümanlar için bölüm bölüm üretim (tek prompt'a sığmayan şablonlar) desteklenmeli.
 
-### FR-9: Doküman Üretimi (YGÖ senaryosu)
-- **FR-9.1** KB'deki şablon dokümanlar referans alınarak, verilen proje bilgileriyle yeni doküman üretilebilmeli.
-- **FR-9.2** Çıktı formatı belirlenebilmeli: en azından Markdown; **docx çıktı** kurumsal senaryoda neredeyse kesin ihtiyaç olacaktır → V1.5'e alınmalı (Pandoc veya python-docx ile).
-- **FR-9.3** Uzun dokümanlar için bölüm bölüm üretim (tek prompt'a sığmayan şablonlar) desteklenmeli.
+### FR-9: Arayüzler
+- **FR-9.1** **REST API** (asgari): `/chat`, `/query`, `/sources` (list/add/delete), `/upload`, `/health`.
+- **FR-9.2** **MCP server endpoint'i** (FR-3.2).
+- **FR-9.3** Basit bir web UI (chat ekranı) — **opsiyonel, V1'de gereksiz**; API + MCP yeterli. İstenirse V2.
+- **FR-9.4** CLI ile hızlı test imkânı (curl örnekleri dokümante edilir, ayrı CLI aracı gerekmez).
 
-### FR-10: Arayüzler
-- **FR-10.1** **REST API** (asgari): `/chat`, `/query`, `/sources` (list/add/delete), `/upload`, `/health`.
-- **FR-10.2** **MCP server endpoint'i** (FR-3.2).
-- **FR-10.3** Basit bir web UI (chat ekranı) — **opsiyonel, V1'de gereksiz**; API + MCP yeterli. İstenirse V2.
-- **FR-10.4** CLI ile hızlı test imkânı (curl örnekleri dokümante edilir, ayrı CLI aracı gerekmez).
-
-### FR-11: Genericlik / Özelleştirme
-- **FR-11.1** Tüm özelleştirme **tek bir config yapısından** yapılabilmeli (ör. `agent.yaml` + `knowledge/` klasörü + `.env`):
+### FR-10: Genericlik / Özelleştirme
+- **FR-10.1** Tüm özelleştirme **tek bir config yapısından** yapılabilmeli (ör. `agent.yaml` + `knowledge/` klasörü + `.env`):
   - persona/talimatlar, LLM sağlayıcı ve modeller, MCP listesi, tool tanımları, KB kaynak listesi, güvenlik ayarları.
-- **FR-11.2** Yeni bir proje için özelleştirme akışı: base image al → config + dosyalar koy → build → deploy. Kod değişikliği gerektirmemeli.
-- **FR-11.3** Base image ile proje imajı ayrılmalı: `FROM agent-base` + `COPY knowledge/ config/` şeklinde ince bir katman.
+- **FR-10.2** Yeni bir proje için özelleştirme akışı: base image al → config + dosyalar koy → build → deploy. Kod değişikliği gerektirmemeli.
+- **FR-10.3** Base image ile proje imajı ayrılmalı: `FROM agent-base` + `COPY knowledge/ config/` şeklinde ince bir katman.
 
 ---
 
@@ -96,6 +93,7 @@
 - **NFR-4 Kaynak:** Tek container, makul RAM ile çalışmalı. Embedding lokalde yapılacaksa CPU'da çalışan küçük bir model tercih edilmeli; aksi halde embedding de LLM sağlayıcısından alınmalı (config).
 - **NFR-5 Taşınabilirlik:** Sadece Docker (ve docker-compose) yeterli olmalı; Kubernetes zorunluluğu olmamalı.
 - **NFR-6 Çoklu kullanıcı:** V1'de **tek kiracı / tek KB** varsayımı. Kullanıcı bazlı izolasyon istenirse "proje başına container" modeli kullanılır (zaten tasarımın doğası bu). Container içi multi-tenancy → gereksiz efor, yapılmamalı.
+- **NFR-7 Offline çalışabilirlik:** Container, internetsiz/kapalı ağda tam işlevli çalışabilmeli: LLM ve embedding lokal endpoint'ten (FR-1.2), MCP bağımlılıkları imajdan (FR-3.4), KB imaj/volume'dan. İnternetsiz ortamda çalışıldığı tek bir environment variable ile bildirilebilmeli (ör. `OFFLINE_MODE=true`); bu bayrak set edildiğinde internet gerektiren tüm özellikler (web fetch/search, cloud MCP'ler, dış API çağrıları) otomatik olarak devre dışı kalmalı — tek tek config ile kapatmak gerekmemeli. Devre dışı özellik çağrıldığında uygulama hata üretmemeli; "offline modda kapalı" şeklinde anlamlı bir yanıt dönmeli.
 
 ---
 
@@ -140,7 +138,7 @@ Dahil:
 2. `agent.yaml` ile: persona/system prompt, LLM sağlayıcı + model, embedding kaynağı.
 3. REST API: `/chat` (talimatlı üretim, KB'yi RAG olarak kullanır), `/query` (saf KB sorgusu), `/upload` + `/reindex` (runtime dosya ekleme, volume'a kalıcı), `/sources` (listele/sil), `/health`.
 4. **MCP server modu:** `queryKnowledgeBase`, `askAgent`, `uploadFile`, `listSources` tool'ları — Claude Code'a eklenebilir olduğu uçtan uca test edilir.
-5. MCP client: config'de tanımlı en az bir harici MCP'ye bağlanabilme (Azure DevOps/Jira bununla kanıtlanır).
+5. MCP client: config'de tanımlı en az bir harici MCP'ye bağlanabilme (herhangi bir MCP ile kanıtlanır; Azure DevOps/Jira gibi kayıtları kullanıcı kendi ortamına göre config'e ekler).
 6. Basit API key koruması, docker-compose örneği, "kendi projen için özelleştirme" README'si.
 7. Kabul senaryosu: YGÖ şablonları `knowledge/`'a konur → image build → deploy → Claude Code'dan MCP ile bağlanılır → "şablona göre şu proje için YGÖ yaz" → md çıktı üretilir.
 
