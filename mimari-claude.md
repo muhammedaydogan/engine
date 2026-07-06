@@ -1,6 +1,6 @@
 # Generic AI Agent Container — Mimari Doküman (v0.1 — Taslak)
 
-> Kaynak: `gereksinimler.md` v0.3. Bu doküman V1 kapsamını gerçekleyen, V1.5/V2/V3 kapılarını açık bırakan somut mimariyi tanımlar. Her ana kararın gerekçesi ve reddedilen alternatifi yanında verilmiştir.
+> **Kapsam: Ürünün V1 sürümü.** Bu doküman, `gereksinimler.md` (v0.3) Bölüm 6'da kilitlenen V1 kapsamının nasıl inşa edileceğini tanımlar. Bölüm 3–6'da anlatılan her bileşen V1'de yapılır; üzerinde açıkça **V1.5** veya **V2** etiketi taşıyan öğeler bugün implement edilmez, yalnızca arayüz/config kapıları açılır (harita: Bölüm 8). Başlıktaki "v0.1" ürün sürümü değil, bu dokümanın kendi sürüm numarasıdır. Her ana kararın gerekçesi ve reddedilen alternatifi yanında verilmiştir.
 
 ---
 

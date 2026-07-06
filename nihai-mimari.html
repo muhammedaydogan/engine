@@ -1,0 +1,367 @@
+<title>Agent Container — Nihai Mimari</title>
+<style>
+  :root{
+    --bg:#F4F6F9; --panel:#FFFFFF; --panel2:#FAFBFD; --ink:#1C2433; --muted:#5A6577;
+    --line:#D6DCE6; --arrow:#9AA6B8;
+    --q:#2B62D9; --i:#B77208; --a:#B93A8D;
+    --v1:#0E8A66; --v15:#0E7490; --v2:#7440C9; --v3:#B93A8D;
+    --chipbg:rgba(28,36,51,.05);
+    --sans:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",sans-serif;
+    --mono:"Cascadia Code",Consolas,"JetBrains Mono","SF Mono",monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#101318; --panel:#171C24; --panel2:#131820; --ink:#E7EBF2; --muted:#96A1B3;
+      --line:#2A3240; --arrow:#5E6A7E;
+      --q:#6E9BFF; --i:#E0A94E; --a:#E579C0;
+      --v1:#3FBF9A; --v15:#4CC6DD; --v2:#A98BE8; --v3:#E579C0;
+      --chipbg:rgba(231,235,242,.07);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#101318; --panel:#171C24; --panel2:#131820; --ink:#E7EBF2; --muted:#96A1B3;
+    --line:#2A3240; --arrow:#5E6A7E;
+    --q:#6E9BFF; --i:#E0A94E; --a:#E579C0;
+    --v1:#3FBF9A; --v15:#4CC6DD; --v2:#A98BE8; --v3:#E579C0;
+    --chipbg:rgba(231,235,242,.07);
+  }
+  :root[data-theme="light"]{
+    --bg:#F4F6F9; --panel:#FFFFFF; --panel2:#FAFBFD; --ink:#1C2433; --muted:#5A6577;
+    --line:#D6DCE6; --arrow:#9AA6B8;
+    --q:#2B62D9; --i:#B77208; --a:#B93A8D;
+    --v1:#0E8A66; --v15:#0E7490; --v2:#7440C9; --v3:#B93A8D;
+    --chipbg:rgba(28,36,51,.05);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);margin:0;padding:28px 20px 48px;line-height:1.5}
+  .wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+  .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  h1{font-size:22px;margin:2px 0 0;font-weight:650;text-wrap:balance}
+  .sub{color:var(--muted);font-size:13.5px;max-width:72ch;margin:0}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .controls .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-right:2px}
+  button.flowbtn{
+    font:600 12.5px var(--sans);color:var(--ink);background:var(--panel);
+    border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;transition:opacity .15s,border-color .15s;
+  }
+  button.flowbtn .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+  button.flowbtn[aria-pressed="true"]{border-color:var(--ink)}
+  button.flowbtn:focus-visible{outline:2px solid var(--q);outline-offset:2px}
+  .verrow{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:12px;color:var(--muted)}
+  .vchip{display:inline-flex;align-items:center;gap:6px;background:var(--chipbg);border-radius:999px;padding:2px 10px;font-weight:600;font-size:11.5px;color:var(--ink)}
+  .vchip i{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding:2px 0 2px 12px;max-width:100ch}
+  .dia{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px;overflow-x:auto}
+  .dia svg{display:block;min-width:1320px;width:100%;height:auto}
+
+  /* ---- SVG içi stiller ---- */
+  text{font-family:var(--sans);fill:var(--ink)}
+  .bx{fill:var(--panel);stroke:var(--line);stroke-width:1.2}
+  .gx{fill:none;stroke:var(--line);stroke-width:1.2}
+  .cont{fill:var(--panel2);stroke:var(--arrow);stroke-width:1.5}
+  .strip{fill:none;stroke:var(--arrow);stroke-width:1.1;stroke-dasharray:5 4}
+  .t-title{font-size:13.5px;font-weight:650}
+  .t-big{font-size:12.5px;font-weight:650}
+  .t-sub{font-size:10.5px;fill:var(--muted)}
+  .t-line{font-size:11px}
+  .t-mono{font-family:var(--mono);font-size:10.5px}
+  .t-cap{font-size:10.5px;fill:var(--muted)}
+  .t-eyeb{font-size:10.5px;font-weight:700;letter-spacing:.12em;fill:var(--muted)}
+  tspan.v1{fill:var(--v1);font-weight:700;font-size:9px;letter-spacing:.03em}
+  tspan.v15{fill:var(--v15);font-weight:700;font-size:9px;letter-spacing:.03em}
+  tspan.v2{fill:var(--v2);font-weight:700;font-size:9px;letter-spacing:.03em}
+  tspan.v3{fill:var(--v3);font-weight:700;font-size:9px;letter-spacing:.03em}
+  .fq{stroke:var(--q);fill:none;stroke-width:2.2}
+  .fi{stroke:var(--i);fill:none;stroke-width:2.2;stroke-dasharray:7 4}
+  .fa{stroke:var(--a);fill:none;stroke-width:2.2;stroke-dasharray:2 5;stroke-linecap:round}
+  .fs{stroke:var(--arrow);fill:none;stroke-width:1.4}
+  .thin{stroke-width:1.5;stroke-dasharray:2 4;opacity:.85}
+  .bq circle{fill:var(--q)} .bi circle{fill:var(--i)} .ba circle{fill:var(--a)}
+  .badge text{fill:#fff;font-size:10.5px;font-weight:700;text-anchor:middle}
+  .badge.small text{font-size:9.5px}
+  g.flowset,path.fq,path.fi,path.fa,g.badge{transition:opacity .2s}
+  .dia[data-flow="q"] .fi,.dia[data-flow="q"] .fa,.dia[data-flow="q"] .bi,.dia[data-flow="q"] .ba{opacity:.1}
+  .dia[data-flow="i"] .fq,.dia[data-flow="i"] .fa,.dia[data-flow="i"] .bq,.dia[data-flow="i"] .ba{opacity:.1}
+  .dia[data-flow="a"] .fq,.dia[data-flow="a"] .fi,.dia[data-flow="a"] .bq,.dia[data-flow="a"] .bi{opacity:.1}
+
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .lcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;transition:opacity .2s}
+  .lcard h3{margin:0 0 10px;font-size:13px;display:flex;align-items:center;gap:8px}
+  .lcard h3 .sw{width:11px;height:11px;border-radius:3px}
+  .lcard ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .lcard li{font-size:12.2px;display:flex;gap:9px;align-items:baseline;color:var(--ink)}
+  .lcard li .n{flex:0 0 auto;width:20px;height:20px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;transform:translateY(3px)}
+  .lcard li em{font-style:normal;color:var(--muted)}
+  .lcard .vt{font-weight:700;font-size:9.5px;letter-spacing:.03em}
+  body[data-flow="q"] .lcard:not(.lq),body[data-flow="i"] .lcard:not(.li),body[data-flow="a"] .lcard:not(.la){opacity:.35}
+  footer{font-size:11.5px;color:var(--muted)}
+  code{font-family:var(--mono);font-size:.92em}
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Generic AI Agent Container</div>
+    <h1>Nihai Hedef Mimari — V1'den V3'e tam resim</h1>
+    <p class="sub">Tüm yol haritası devredeyken container'ın son hâli: Cognee üçlü deposu (SQLite · LanceDB · Kuzu) dahil.
+    Renkli oklar veri akışlarıdır; üstteki düğmelerle tek akışı vurgulayıp numaraları sırayla izleyebilirsin.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Akış vurgusu">
+    <span class="lbl">Akış</span>
+    <button class="flowbtn" data-f="all" aria-pressed="true"><span class="sw" style="background:linear-gradient(90deg,var(--q),var(--i),var(--a))"></span>Tümü</button>
+    <button class="flowbtn" data-f="q" aria-pressed="false"><span class="sw" style="background:var(--q)"></span>Sorgu / üretim</button>
+    <button class="flowbtn" data-f="i" aria-pressed="false"><span class="sw" style="background:var(--i)"></span>Ingest (cognify)</button>
+    <button class="flowbtn" data-f="a" aria-pressed="false"><span class="sw" style="background:var(--a)"></span>A2A (V3)</button>
+  </div>
+
+  <div class="verrow">
+    <span class="lbl" style="letter-spacing:.1em;text-transform:uppercase;font-size:11px;font-weight:600">Sürüm</span>
+    <span class="vchip"><i style="background:var(--v1)"></i>V1 — çekirdek (bugün inşa edilen)</span>
+    <span class="vchip"><i style="background:var(--v15)"></i>V1.5 — yakın eklentiler</span>
+    <span class="vchip"><i style="background:var(--v2)"></i>V2 — Cognee + graph</span>
+    <span class="vchip"><i style="background:var(--v3)"></i>V3 — agent-to-agent</span>
+  </div>
+
+  <p class="note">Okuma kuralı: <strong>etiketsiz her öğe V1'dir.</strong> Sürüm etiketi taşıyan öğe o sürümde devreye girer;
+  V1'de yalnızca port/config kapısı bulunur. Çift uçlu oklar okuma/çağrı gidiş-dönüşünü gösterir.</p>
+
+  <div class="dia" id="dia" data-flow="all">
+  <svg viewBox="0 0 1320 1115" width="1320" role="img" aria-label="Nihai mimari diyagramı: istemciler, agent container katmanları, Cognee üçlü deposu ve dış bağımlılıklar; sorgu, ingest ve A2A veri akışları numaralı oklarla">
+    <defs>
+      <marker id="mQ" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--q)"/></marker>
+      <marker id="mI" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--i)"/></marker>
+      <marker id="mA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--a)"/></marker>
+      <marker id="mS" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--arrow)"/></marker>
+    </defs>
+
+    <!-- ═══════════ DIŞ DÜNYA: ÜST SATIR ═══════════ -->
+    <rect class="bx" x="60" y="30" width="240" height="64" rx="10"/>
+    <text class="t-big" x="76" y="55">knowledge/ + repo</text>
+    <text class="t-sub" x="76" y="74">build-time bake kaynakları</text>
+
+    <rect class="bx" x="320" y="30" width="250" height="64" rx="10"/>
+    <text class="t-big" x="336" y="55">Claude Code / Desktop</text>
+    <text class="t-sub" x="336" y="74">MCP istemcisi</text>
+
+    <rect class="bx" x="590" y="30" width="220" height="64" rx="10"/>
+    <text class="t-big" x="606" y="55">Harici sistemler · curl</text>
+    <text class="t-sub" x="606" y="74">REST · X-API-Key</text>
+
+    <rect class="bx" x="830" y="30" width="160" height="64" rx="10"/>
+    <text class="t-big" x="846" y="55">Web UI <tspan class="v2">V2</tspan></text>
+    <text class="t-sub" x="846" y="74">chat ekranı</text>
+
+    <rect class="bx" x="1010" y="30" width="250" height="64" rx="10"/>
+    <text class="t-big" x="1026" y="55">Diğer agent container'lar <tspan class="v3">V3</tspan></text>
+    <text class="t-sub" x="1026" y="74">A2A — MCP üzerinden</text>
+
+    <!-- ═══════════ CONTAINER ═══════════ -->
+    <rect class="cont" x="40" y="150" width="1240" height="840" rx="16"/>
+    <text class="t-eyeb" x="64" y="176">AGENT CONTAINER — TEK İMAJ · TEK SÜREÇ</text>
+
+    <!-- API katmanı -->
+    <rect class="bx" x="80" y="192" width="1160" height="76" rx="10"/>
+    <line class="gx" x1="560" y1="192" x2="560" y2="268"/>
+    <line class="gx" x1="1040" y1="192" x2="1040" y2="268"/>
+    <text class="t-big" x="96" y="216">MCP Server — /mcp (HTTP) · stdio</text>
+    <text class="t-mono" x="96" y="236">queryKB · askAgent · uploadFile · listSources</text>
+    <text class="t-mono" x="96" y="252">setInstructions · addRepo <tspan class="v15">V1.5</tspan> · addMCP <tspan class="v2">V2</tspan></text>
+    <text class="t-big" x="576" y="216">REST API — X-API-Key</text>
+    <text class="t-mono" x="576" y="238">/chat /query /sources /upload</text>
+    <text class="t-mono" x="576" y="254">/instructions /reindex /health</text>
+    <text class="t-big" x="1056" y="216">Web UI (statik) <tspan class="v2">V2</tspan></text>
+    <text class="t-sub" x="1056" y="236">API + MCP'nin vitrini</text>
+
+    <!-- Agent Core -->
+    <rect class="bx" x="80" y="312" width="640" height="104" rx="10"/>
+    <text class="t-title" x="96" y="336">Agent Core — orkestrasyon</text>
+    <text class="t-line" x="96" y="358">system prompt = persona + runtime talimat · bağlam = etiketli veri blokları</text>
+    <text class="t-line" x="96" y="376">sınırlı tool döngüsü (max_iterations) · sectioned uzun üretim</text>
+    <text class="t-line" x="96" y="394">docx render <tspan class="v15">V1.5</tspan> · session store (ops.) <tspan class="v15">V1.5</tspan></text>
+
+    <!-- Bilgi Alt Sistemi (Cognee) -->
+    <rect class="gx" x="80" y="462" width="580" height="286" rx="12"/>
+    <text class="t-title" x="96" y="486">Bilgi Alt Sistemi <tspan class="v2">V2+: COGNEE ÇEKİRDEĞİ</tspan></text>
+    <text class="t-sub" x="96" y="504">üç depoya yazar · üç depodan okur</text>
+
+    <rect class="bx" x="96" y="520" width="260" height="208" rx="9"/>
+    <text class="t-big" x="108" y="543">Cognify — ingest hattı</text>
+    <text class="t-mono" x="108" y="566">parse → chunk → embed</text>
+    <text class="t-mono" x="108" y="584">entity/ilişki çıkarımı (LLM) <tspan class="v2">V2</tspan></text>
+    <text class="t-mono" x="108" y="602">özetleme (SUMMARIES) <tspan class="v2">V2</tspan></text>
+    <text class="t-cap" x="108" y="628">girdiler:</text>
+    <text class="t-mono" x="108" y="646">bake · /upload</text>
+    <text class="t-mono" x="108" y="664">addRepo <tspan class="v15">V1.5</tspan> · web_fetch <tspan class="v15">V1.5</tspan></text>
+    <text class="t-mono" x="108" y="682">web_search <tspan class="v2">V2</tspan></text>
+
+    <rect class="bx" x="380" y="520" width="260" height="208" rx="9"/>
+    <text class="t-big" x="392" y="543">Retrieval yönlendirici</text>
+    <text class="t-mono" x="392" y="566">vector (varsayılan)</text>
+    <text class="t-mono" x="392" y="584">hybrid: FTS + vektör → RRF</text>
+    <text class="t-mono" x="392" y="602">rerank — ops., kapalı <tspan class="v15">V1.5</tspan></text>
+    <text class="t-mono" x="392" y="620">graph: giriş node → triplet <tspan class="v2">V2</tspan></text>
+    <text class="t-cap" x="392" y="648">çıktı:</text>
+    <text class="t-mono" x="392" y="666">chunk + kaynak atfı</text>
+    <text class="t-mono" x="392" y="684">(+ triplet bağlamı <tspan class="v2">V2</tspan>)</text>
+
+    <!-- Tool Katmanı -->
+    <rect class="bx" x="690" y="462" width="280" height="286" rx="10"/>
+    <text class="t-title" x="706" y="486">Tool Katmanı</text>
+    <text class="t-mono" x="706" y="512">query_kb</text>
+    <text class="t-mono" x="706" y="530">web_fetch <tspan class="v15">V1.5</tspan> · web_search <tspan class="v2">V2</tspan></text>
+    <text class="t-mono" x="706" y="548">HTTP tool: manuel <tspan class="v15">V1.5</tspan> · OpenAPI <tspan class="v2">V2</tspan></text>
+    <text class="t-line" x="706" y="580">MCP Client Manager</text>
+    <text class="t-mono" x="706" y="598">runtime addMCP <tspan class="v2">V2</tspan></text>
+    <text class="t-line" x="706" y="630">stdio MCP'ler:</text>
+    <text class="t-mono" x="706" y="648">imaja gömülü subprocess</text>
+    <text class="t-cap" x="706" y="676">npx/uvx yok — FR-3.4</text>
+
+    <!-- LLM Katmanı -->
+    <rect class="bx" x="1000" y="462" width="240" height="286" rx="10"/>
+    <text class="t-title" x="1016" y="486">LLM Katmanı</text>
+    <text class="t-line" x="1016" y="512">provider portu:</text>
+    <text class="t-mono" x="1016" y="530">OpenAI-uyumlu</text>
+    <text class="t-mono" x="1016" y="548">Anthropic · Azure <tspan class="v15">V1.5</tspan></text>
+    <text class="t-line" x="1016" y="580">model haritası:</text>
+    <text class="t-mono" x="1016" y="598">chat · utility · embedding</text>
+    <text class="t-line" x="1016" y="630">usage ledger → SQLite</text>
+    <text class="t-line" x="1016" y="648">max_tokens freni</text>
+
+    <!-- /data volume + Cognee üçlü deposu -->
+    <rect class="strip" x="80" y="792" width="580" height="140" rx="12"/>
+    <text class="t-eyeb" x="96" y="814">/DATA VOLUME — KALICI DURUM · COGNEE ÜÇLÜSÜ</text>
+    <rect class="bx" x="96" y="826" width="176" height="76" rx="8"/>
+    <text class="t-big" x="108" y="846">SQLite</text>
+    <text class="t-sub" x="108" y="862">ilişkisel · metadata</text>
+    <text class="t-mono" x="108" y="880" style="font-size:9.5px">katalog · usage · durum <tspan class="v2">V2</tspan></text>
+    <rect class="bx" x="288" y="826" width="176" height="76" rx="8"/>
+    <text class="t-big" x="300" y="846">LanceDB</text>
+    <text class="t-sub" x="300" y="862">vektör + FTS</text>
+    <text class="t-mono" x="300" y="880" style="font-size:9.5px">chunk vec · node vec <tspan class="v2">V2</tspan></text>
+    <rect class="bx" x="480" y="826" width="164" height="76" rx="8"/>
+    <text class="t-big" x="492" y="846">Kuzu <tspan class="v2">V2</tspan></text>
+    <text class="t-sub" x="492" y="862">graph deposu</text>
+    <text class="t-mono" x="492" y="880" style="font-size:9.5px">entity · ilişki · triplet</text>
+    <text class="t-cap" x="96" y="922">uploads/ · instructions.md · sessions <tspan class="v15">V1.5</tspan> · bake manifest</text>
+
+    <!-- kesişen servisler -->
+    <text class="t-cap" x="96" y="966">Kesişen servisler: Config (agent.yaml + env) · Egress Guard + OFFLINE_MODE (dışarı giden her çağrı) · Observability (json log · request_id)</text>
+
+    <!-- ═══════════ DIŞ DÜNYA: ALT SATIR ═══════════ -->
+    <rect class="bx" x="380" y="1030" width="270" height="66" rx="10"/>
+    <text class="t-big" x="396" y="1054">Diğer agent container /mcp <tspan class="v3">V3</tspan></text>
+    <text class="t-sub" x="396" y="1073">bizim MCP client'ımızın hedefi</text>
+    <rect class="bx" x="690" y="1030" width="280" height="66" rx="10"/>
+    <text class="t-big" x="706" y="1054">İç ağ MCP server'ları</text>
+    <text class="t-sub" x="706" y="1073">Azure DevOps · Jira · Spring AI Java servisi</text>
+    <rect class="bx" x="1000" y="1030" width="240" height="66" rx="10"/>
+    <text class="t-big" x="1016" y="1054">OpenAI-uyumlu endpoint</text>
+    <text class="t-sub" x="1016" y="1073">vLLM · Ollama · kurumsal gateway</text>
+
+    <!-- ═══════════ STATİK BAĞLANTILAR ═══════════ -->
+    <path class="fs" d="M700,94 V186" marker-end="url(#mS)"/>
+    <path class="fs" d="M910,94 V176 H1140 V186" marker-end="url(#mS)"/>
+
+    <!-- ═══════════ SORGU AKIŞI (mavi) ═══════════ -->
+    <path class="fq" d="M445,94 V186" marker-end="url(#mQ)"/>
+    <path class="fq" d="M505,192 V100" marker-end="url(#mQ)"/>
+    <path class="fq" d="M400,268 V306" marker-end="url(#mQ)"/>
+    <path class="fq" d="M510,416 V514" marker-end="url(#mQ)"/>
+    <path class="fq" d="M620,520 V422" marker-end="url(#mQ)"/>
+    <path class="fq" d="M440,728 V820" marker-start="url(#mQ)" marker-end="url(#mQ)"/>
+    <path class="fq" d="M560,728 V820" marker-start="url(#mQ)" marker-end="url(#mQ)"/>
+    <path class="fq" d="M720,344 H1120 V456" marker-end="url(#mQ)"/>
+    <path class="fq" d="M1120,748 V1024" marker-start="url(#mQ)" marker-end="url(#mQ)"/>
+    <path class="fq" d="M720,376 H830 V456" marker-end="url(#mQ)"/>
+    <path class="fq" d="M830,748 V1024" marker-start="url(#mQ)" marker-end="url(#mQ)"/>
+    <path class="fq thin" d="M1060,748 V756 H240 V820" marker-end="url(#mQ)"/>
+
+    <g class="badge bq"><circle cx="445" cy="140" r="10.5"/><text x="445" y="144">1</text></g>
+    <g class="badge bq"><circle cx="400" cy="288" r="10.5"/><text x="400" y="292">2</text></g>
+    <g class="badge bq"><circle cx="510" cy="468" r="10.5"/><text x="510" y="472">3</text></g>
+    <g class="badge bq"><circle cx="440" cy="778" r="10.5"/><text x="440" y="782">4</text></g>
+    <g class="badge bq"><circle cx="560" cy="778" r="10.5"/><text x="560" y="782">5</text></g>
+    <g class="badge bq"><circle cx="620" cy="468" r="10.5"/><text x="620" y="472">6</text></g>
+    <g class="badge bq"><circle cx="920" cy="344" r="10.5"/><text x="920" y="348">7</text></g>
+    <g class="badge bq"><circle cx="788" cy="376" r="10.5"/><text x="788" y="380">8</text></g>
+    <g class="badge bq"><circle cx="505" cy="140" r="10.5"/><text x="505" y="144">9</text></g>
+
+    <!-- ═══════════ INGEST AKIŞI (kehribar) ═══════════ -->
+    <path class="fi" d="M180,94 V132 H58 V540 H90" marker-end="url(#mI)"/>
+    <path class="fi" d="M620,268 V292 H58"/>
+    <path class="fi" d="M340,520 V440 H1060 V456" marker-end="url(#mI)"/>
+    <path class="fi" d="M180,728 V820" marker-end="url(#mI)"/>
+    <path class="fi" d="M300,728 V820" marker-end="url(#mI)"/>
+    <path class="fi" d="M340,728 V770 H540 V820" marker-end="url(#mI)"/>
+
+    <g class="badge bi small"><circle cx="58" cy="330" r="11"/><text x="58" y="334">A1</text></g>
+    <g class="badge bi small"><circle cx="332" cy="540" r="11"/><text x="332" y="544">A2</text></g>
+    <g class="badge bi small"><circle cx="700" cy="440" r="11"/><text x="700" y="444">A3</text></g>
+    <g class="badge bi small"><circle cx="180" cy="778" r="11"/><text x="180" y="782">A4</text></g>
+    <g class="badge bi small"><circle cx="300" cy="778" r="11"/><text x="300" y="782">A5</text></g>
+    <g class="badge bi small"><circle cx="480" cy="770" r="11"/><text x="480" y="774">A6</text></g>
+
+    <!-- ═══════════ A2A AKIŞI (magenta) ═══════════ -->
+    <path class="fa" d="M1135,94 V164 H520 V186" marker-end="url(#mA)"/>
+    <path class="fa" d="M760,748 V1008 H515 V1024" marker-end="url(#mA)"/>
+
+    <g class="badge ba small"><circle cx="828" cy="164" r="11"/><text x="828" y="168">B1</text></g>
+    <g class="badge ba small"><circle cx="760" cy="900" r="11"/><text x="760" y="904">B2</text></g>
+  </svg>
+  </div>
+
+  <div class="legend">
+    <div class="lcard lq">
+      <h3><span class="sw" style="background:var(--q)"></span>Sorgu / üretim akışı</h3>
+      <ol>
+        <li><span class="n" style="background:var(--q)">1</span><span>İstemci isteği: MCP tool'u (<code>askAgent</code>, <code>queryKB</code>) veya REST (<code>/chat</code>, <code>/query</code>) — API key doğrulanır.</span></li>
+        <li><span class="n" style="background:var(--q)">2</span><span>API → Agent Core: system prompt kurulur (persona + runtime talimat).</span></li>
+        <li><span class="n" style="background:var(--q)">3</span><span>Agent Core retrieval'ı çağırır (mod config'ten: vector | hybrid | graph).</span></li>
+        <li><span class="n" style="background:var(--q)">4</span><span>LanceDB'de FTS + vektör arama → RRF füzyonu <em>(ops. rerank <span class="vt" style="color:var(--v15)">V1.5</span>)</em>.</span></li>
+        <li><span class="n" style="background:var(--q)">5</span><span><span class="vt" style="color:var(--v2)">V2</span> Bulunan giriş node'larından Kuzu'da graph genişletme → triplet'ler.</span></li>
+        <li><span class="n" style="background:var(--q)">6</span><span>Bağlam, etiketli veri blokları + kaynak atıflarıyla Agent Core'a döner.</span></li>
+        <li><span class="n" style="background:var(--q)">7</span><span>LLM çağrısı: adapter → OpenAI-uyumlu endpoint (tool tanımları dahil).</span></li>
+        <li><span class="n" style="background:var(--q)">8</span><span>Model tool isterse: Tool Katmanı → MCP / harici servis; sonuç bağlama eklenir, 7'ye dönülür (≤ max_iterations).</span></li>
+        <li><span class="n" style="background:var(--q)">9</span><span>Cevap + atıflar istemciye; çağrı usage ledger'a (SQLite, ince noktalı ok) yazılır.</span></li>
+      </ol>
+    </div>
+    <div class="lcard li">
+      <h3><span class="sw" style="background:var(--i)"></span>Ingest akışı (cognify)</h3>
+      <ol>
+        <li><span class="n" style="background:var(--i)">A1</span><span>Kaynak girişi: build-time bake (<code>knowledge/</code> + repo) ve runtime <code>/upload</code>; <code>addRepo</code>, <code>web_fetch</code> <span class="vt" style="color:var(--v15)">V1.5</span>.</span></li>
+        <li><span class="n" style="background:var(--i)">A2</span><span>Cognify hattı: parse → chunk (kaynak/bölüm metadata'sı). <span class="vt" style="color:var(--v2)">V2</span>'de ek: LLM ile entity/ilişki çıkarımı + özetleme.</span></li>
+        <li><span class="n" style="background:var(--i)">A3</span><span>Embedding çağrısı LLM katmanı adapter'ı üzerinden endpoint'e gider.</span></li>
+        <li><span class="n" style="background:var(--i)">A4</span><span>Katalog + pipeline durumu → SQLite (<code>origin: baked|runtime</code>).</span></li>
+        <li><span class="n" style="background:var(--i)">A5</span><span>Chunk vektörleri + FTS index → LanceDB (<span class="vt" style="color:var(--v2)">V2</span>: node embedding'leri de).</span></li>
+        <li><span class="n" style="background:var(--i)">A6</span><span><span class="vt" style="color:var(--v2)">V2</span> Entity / ilişki / triplet'ler → Kuzu.</span></li>
+      </ol>
+    </div>
+    <div class="lcard la">
+      <h3><span class="sw" style="background:var(--a)"></span>A2A akışı <span class="vt" style="color:var(--v3)">V3</span></h3>
+      <ol>
+        <li><span class="n" style="background:var(--a)">B1</span><span>Başka bir agent container, bu container'ı sıradan bir MCP server olarak çağırır (üst kutu → <code>/mcp</code>).</span></li>
+        <li><span class="n" style="background:var(--a)">B2</span><span>Bu agent'ın MCP client'ı, config'e eklenmiş diğer container'ın <code>/mcp</code>'sine bağlanır ve tool'unu çağırır.</span></li>
+        <li><span class="n" style="background:var(--a)">B3</span><span>Dönen sonuç, sorgu akışının 8. adımına sıradan bir tool sonucu olarak girer — özel mekanizma yok; kapı V1 mimarisinde hazır.</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <footer>Kaynaklar: <code>gereksinimler.md</code> v0.3 · <code>mimari-claude.md</code> v0.1. Cognee üçlüsünün tamamı gömülü kütüphanedir; harici DB servisi gerekmez, hepsi <code>/data</code> volume'unda yaşar.</footer>
+</div>
+
+<script>
+  (function(){
+    var dia = document.getElementById('dia');
+    var btns = Array.prototype.slice.call(document.querySelectorAll('.flowbtn'));
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){
+        var f = b.getAttribute('data-f');
+        dia.setAttribute('data-flow', f);
+        document.body.setAttribute('data-flow', f);
+        btns.forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      });
+    });
+  })();
+</script>
