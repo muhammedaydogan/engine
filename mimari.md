@@ -18,14 +18,14 @@
 
 ## 2. Teknoloji Seçimi
 
-| Bileşen | Seçim | Gerekçe |
-|---|---|---|
-| Dil | **Python 3.12+** | Tak-çıkar denenecek hafıza sistemlerinin (cognee, Graphiti, LightRAG) tamamı Python. MCP resmi SDK'sı olgun. Ekosistem en geniş. |
-| Web framework | **FastAPI** | Async, Pydantic entegrasyonu, OpenAPI otomatik; MCP SDK ile aynı ASGI süreçte koşabilir. |
-| MCP | **Resmi `mcp` Python SDK** | Hem client hem server; stdio + streamable HTTP transport. |
-| Config/şema | **Pydantic v2 + pydantic-settings** | `agent.yaml` doğrulama, env override, fail-fast. |
+| Bileşen             | Seçim                                 | Gerekçe                                                                                                                               |
+| ------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Dil                 | **Python 3.12+**                      | Tak-çıkar denenecek hafıza sistemlerinin (cognee, Graphiti, LightRAG) tamamı Python. MCP resmi SDK'sı olgun. Ekosistem en geniş.      |
+| Web framework       | **FastAPI**                           | Async, Pydantic entegrasyonu, OpenAPI otomatik; MCP SDK ile aynı ASGI süreçte koşabilir.                                              |
+| MCP                 | **Resmi `mcp` Python SDK**            | Hem client hem server; stdio + streamable HTTP transport.                                                                             |
+| Config/şema         | **Pydantic v2 + pydantic-settings**   | `agent.yaml` doğrulama, env override, fail-fast.                                                                                      |
 | Vektör DB (default) | **LanceDB** (embedded, dosya tabanlı) | Sunucusuz, tek container'a gömülür (NFR-4/5), volume'da kalıcı (NFR-2). Port arkasında olduğu için Chroma/Qdrant'a geçiş adapter işi. |
-| HTTP istemci | httpx | Async, OpenAI-uyumlu generic endpoint çağrıları için. |
+| HTTP istemci        | httpx                                 | Async, OpenAI-uyumlu generic endpoint çağrıları için.                                                                                 |
 
 > Not: Bu tablo bir öneri-karardır; gereksinimler.md Bölüm 7 Soru 2'nin cevabıdır. Java/Spring AI tercih edilirse aynı port/adapter deseni orada da uygulanabilir, ancak cognee tarzı deneyler için Python güçlü tavsiyedir.
 
@@ -34,19 +34,19 @@
 ## 3. Yüksek Seviye Görünüm
 
 ```
-                    ┌─────────────────────── Container ───────────────────────┐
-                    │                                                          │
-  Claude Code ──MCP──▶ ┌────────────┐      ┌──────────────────────────┐       │
-  (stdio/HTTP)      │  │ MCP Server │──┐   │      Application Core     │       │
-                    │  └────────────┘  │   │                          │       │
+                    ┌─────────────────────── Container ──────────────────────────────┐
+                    │                                                                │
+  Claude Code ──MCP──▶ ┌────────────┐      ┌──────────────────────────┐              │
+  (stdio/HTTP)      │  │ MCP Server │──┐   │      Application Core     │             │
+                    │  └────────────┘  │   │                          │              │
   curl / servis ─REST─▶┌────────────┐  ├──▶│  AgentService  (chat/üretim döngüsü)
                     │  │  REST API  │──┘   │  KnowledgeService (ingest/query/sources)
                     │  └────────────┘      │  ToolRegistry  (tool toplama/çağırma)
                     │   (driving           │  SessionStore  (konuşma geçmişi)
-                    │    adapters)         └──────────┬───────────────┘       │
-                    │                                 │ portlar (interface)    │
-                    │        ┌────────────────────────┼────────────────────┐  │
-                    │        ▼            ▼           ▼          ▼         ▼  │
+                    │    adapters)         └──────────┬───────────────┘              │
+                    │                                 │ portlar (interface)          │
+                    │        ┌────────────────────────┼────────────────────┐         │
+                    │        ▼            ▼           ▼          ▼         ▼         │
                     │  ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌────────┐ ┌───────────┐
                     │  │   LLM    │ │  Memory  │ │WebSearch│ │  MCP   │ │ HTTP Tool │
                     │  │ Provider │ │ Backend  │ │ (stub)  │ │ Client │ │ (FR-7)    │
@@ -255,48 +255,48 @@ VECTOR_STORES:      dict[str, StoreFactory]      = {"lancedb": ..., "chroma": ..
 persona_file: persona.md
 
 llm:
-  provider: openai_compat            # anthropic | openai_compat
-  base_url: ${LLM_BASE_URL}          # lokal vLLM/Ollama olabilir (FR-1.2)
+  provider: openai_compat # anthropic | openai_compat
+  base_url: ${LLM_BASE_URL} # lokal vLLM/Ollama olabilir (FR-1.2)
   models:
     chat: qwen2.5-72b
-    embedding: bge-m3                # FR-1.3: görev başına model
+    embedding: bge-m3 # FR-1.3: görev başına model
 
 memory:
-  backend: vector_rag                # ★ tak-çıkar noktası: vector_rag | cognee
+  backend: vector_rag # ★ tak-çıkar noktası: vector_rag | cognee
   vector_rag:
     store: lancedb
     data_dir: /data/index
-    chunk: {size: 1000, overlap: 150}
+    chunk: { size: 1000, overlap: 150 }
 
 websearch:
-  provider: none                     # V1: sadece 'none' (stub). V2: brave | tavily | searxng
+  provider: none # V1: sadece 'none' (stub). V2: brave | tavily | searxng
 
 tools:
   mcp_servers:
     - name: ado
       transport: stdio
-      command: ["node", "/opt/mcp/azure-devops/index.js"]   # imaja gömülü (FR-3.4)
-      requires_internet: true        # OFFLINE_MODE'da otomatik atlanır
-  http_tools: []                     # FR-7 manuel tool tanımları (V1.5)
+      command: ["node", "/opt/mcp/azure-devops/index.js"] # imaja gömülü (FR-3.4)
+      requires_internet: true # OFFLINE_MODE'da otomatik atlanır
+  http_tools: [] # FR-7 manuel tool tanımları (V1.5)
 
 api:
-  require_api_key: true              # anahtar env'den: API_KEY
+  require_api_key: true # anahtar env'den: API_KEY
 
 limits:
-  max_tokens_per_request: 8000       # NFR-3
+  max_tokens_per_request: 8000 # NFR-3
 ```
 
-**Environment variable'lar (secrets + ortam bayrakları):** `LLM_API_KEY`, `LLM_BASE_URL`, `API_KEY`, `OFFLINE_MODE`, `LOG_LEVEL`. Kural: config dosyası *davranışı*, env *sırları ve ortamı* tanımlar (FR-1.4). Env, yaml'daki `${VAR}` yer tutucularına açılır.
+**Environment variable'lar (secrets + ortam bayrakları):** `LLM_API_KEY`, `LLM_BASE_URL`, `API_KEY`, `OFFLINE_MODE`, `LOG_LEVEL`. Kural: config dosyası _davranışı_, env _sırları ve ortamı_ tanımlar (FR-1.4). Env, yaml'daki `${VAR}` yer tutucularına açılır.
 
 ### OFFLINE_MODE=true davranış matrisi (NFR-7)
 
-| Bileşen | Davranış |
-|---|---|
-| WebSearch | Config'e bakılmaksızın Noop'a zorlanır; tool "kapalı" cevabı döner |
-| MCP client | `requires_internet: true` işaretli server'lar bağlanmaz; tool listesinden düşer, log'a bilgi yazılır |
-| LLM/Embedding | `base_url` zorunlu (lokal endpoint); public cloud URL'i tespit edilirse açılışta uyarı |
-| Ingest | Sadece lokal dosya/volume kaynakları; URL kaynakları reddedilir (anlamlı mesajla) |
-| /health | `"offline_mode": true` ve devre dışı bileşen listesi raporlanır |
+| Bileşen       | Davranış                                                                                             |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| WebSearch     | Config'e bakılmaksızın Noop'a zorlanır; tool "kapalı" cevabı döner                                   |
+| MCP client    | `requires_internet: true` işaretli server'lar bağlanmaz; tool listesinden düşer, log'a bilgi yazılır |
+| LLM/Embedding | `base_url` zorunlu (lokal endpoint); public cloud URL'i tespit edilirse açılışta uyarı               |
+| Ingest        | Sadece lokal dosya/volume kaynakları; URL kaynakları reddedilir (anlamlı mesajla)                    |
+| /health       | `"offline_mode": true` ve devre dışı bileşen listesi raporlanır                                      |
 
 ---
 
@@ -322,12 +322,12 @@ Döngü sınırlıdır (`max_tool_rounds`, default 8) — sonsuz tool döngüsü
 
 `adapters/mcp/server.py`, MCP SDK ile şu tool'ları tanımlar ve **doğrudan core servislerine** bağlar (FR-3.2):
 
-| MCP tool | Bağlandığı servis |
-|---|---|
-| `queryKnowledgeBase` | `KnowledgeService.query` |
-| `askAgent` | `AgentService.run` |
-| `uploadFile` | `KnowledgeService.ingest` (volume'a) |
-| `listSources` | `KnowledgeService.list_sources` |
+| MCP tool             | Bağlandığı servis                    |
+| -------------------- | ------------------------------------ |
+| `queryKnowledgeBase` | `KnowledgeService.query`             |
+| `askAgent`           | `AgentService.run`                   |
+| `uploadFile`         | `KnowledgeService.ingest` (volume'a) |
+| `listSources`        | `KnowledgeService.list_sources`      |
 
 Transport: streamable HTTP (REST ile aynı porttan `/mcp` path'i) + istenirse stdio. REST route'ları ile MCP tool'ları aynı servis metodlarını çağırdığı için davranış farkı oluşamaz.
 
@@ -352,14 +352,14 @@ Dockerfile.project → FROM agent-base
 
 ## 10. Kapsam Eşlemesi ve Stub Envanteri
 
-| Bileşen | V1 durumu |
-|---|---|
-| REST API, MCP server/client, vector_rag memory, build-time ingest, upload/reindex, session (dosya), API key | **Implement edilir** |
-| Web search | **Port + Noop stub** — tool görünür, "kapalı" cevabı döner; implementasyon yok |
-| cognee memory backend | **Boş iskelet** — sınıf + registry kaydı var, metodlar NotImplementedError |
-| HTTP tool (FR-7 manuel tanım) | Port + config şeması hazır, adapter V1.5 |
-| Web UI | **Yok** — bilinçli olarak mimaride yer almaz; ihtiyaç olursa REST'in üstüne ayrı container |
-| addMCP, addRepo runtime endpoint'leri | Yok (V1.5/V2); ToolSource/SourceSpec tasarımı kapıyı açık tutar |
+| Bileşen                                                                                                     | V1 durumu                                                                                  |
+| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| REST API, MCP server/client, vector_rag memory, build-time ingest, upload/reindex, session (dosya), API key | **Implement edilir**                                                                       |
+| Web search                                                                                                  | **Port + Noop stub** — tool görünür, "kapalı" cevabı döner; implementasyon yok             |
+| cognee memory backend                                                                                       | **Boş iskelet** — sınıf + registry kaydı var, metodlar NotImplementedError                 |
+| HTTP tool (FR-7 manuel tanım)                                                                               | Port + config şeması hazır, adapter V1.5                                                   |
+| Web UI                                                                                                      | **Yok** — bilinçli olarak mimaride yer almaz; ihtiyaç olursa REST'in üstüne ayrı container |
+| addMCP, addRepo runtime endpoint'leri                                                                       | Yok (V1.5/V2); ToolSource/SourceSpec tasarımı kapıyı açık tutar                            |
 
 ---
 
