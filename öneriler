@@ -1,0 +1,21 @@
+1. Oturum / konuşma hafızası — Dokümanda /chat var ama oturum kavramı hiç yok. Çok turlu sohbette bağlam nasıl korunacak? Session ID, konuşma geçmişinin volume'da kalıcılığı, geçmişi silme (/sessions). Bu bence en büyük boşluk; MCP üzerinden askAgent çağıran bir Claude Code oturumu bile "az önce ürettiğin bölümü şöyle değiştir" diyebilmeli.
+2. Streaming yanıt (SSE): Uzun doküman üretiminde (YGÖ senaryosu) dakikalarca boş bekleyen bir HTTP isteği pratik değil. /chat için token streaming ya da alternatifi olarak async job API (POST /jobs → GET /jobs/{id}) — FR-8.3'teki bölüm bölüm üretimle doğal eşleşiyor.
+3. Config doğrulama / fail-fast: agent.yaml şema validasyonu; hatalı config ile container yarı çalışır durumda ayağa kalkmamalı, açılışta net hata mesajıyla düşmeli. Genericlik hedefi (FR-10) olan bir üründe kullanıcının ilk yaşayacağı sorun bu olur.
+4. Incremental reindex: FR-2.3'te reindex var ama her seferinde tüm KB'yi yeniden işlemek büyük KB'de pahalı. Dosya hash'i ile sadece değişenleri işleme.
+5. API key rolleri (admin/reader ayrımı): NFR-1'de tek API key var. Sorgu yapabilen ama kaynak silemeyen/talimat değiştiremeyen ikinciner'ı MCP olarak dışarı açınca neredeyseşart.
+
+Kurumsal senaryoda sorulacaklar (V1.5/V
+
+6. Audit log: Kim hangi soruyu sordu, hangi tool çağrıldı, hangi kaynaklar kullanıldı — NFR-3'teki token loglamadan ayrı bir izlenebilirlik gereksinimi.
+7. Yazma işlemlerinde onay (human-in-th iş kaydı yazma var; agent'ın dışsistemlere yazan tool çağrıları için opsiyonel onay/dry-run mekanizması.
+8. Kalite/regresyon test seti: KB'ye "gevap kriterleri tanımlanıp eval komutuyla koşulabilmeli. Chunk stratejisi veya model değişince kalite düştü mü sorusunun tek cevabı bu (4. bölümdeki
+Türkçe içerik testi maddesiyle de birle
+9. Model fallback: Birincil LLM endpoint'i düşünce yedek sağlayıcıya geçiş (config'de sıralı liste).
+
+Küçük ama ucuz eklemeler:
+
+10. /metrics endpoint'i (Prometheus formatı) — NFR-3'ün doğal uzantısı.
+11. KB yedekleme/geri yükleme: Volume'ullikle riskli reindex öncesi otomatikyedek.
+12. Zamanlanmış ingest: Repo/web kaynaklarını cron ile periyodik tazeleme (V2'deki addRepo/web fetch ile birlikte anlamlı).
+13. Structured output: JSON şemasına uygun çıktı zorlaması — FR-7 üzerinden başka sistemlerin tüketeceği
+çıktılar için.
