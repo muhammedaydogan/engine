@@ -1,8 +1,10 @@
-# Generic AI Agent Container — Mimari Doküman (v0.2 — Taslak)
+# Generic AI Agent Container — Mimari Doküman (v0.3 — Taslak)
 
-> **Kapsam: Ürünün V1 sürümü.** Bu doküman, `gereksinimler.md` (v0.3) Bölüm 6'da kilitlenen V1 kapsamının nasıl inşa edileceğini tanımlar. Bölüm 3–6'da anlatılan her bileşen V1'de yapılır; üzerinde açıkça **V1.5** veya **V2** etiketi taşıyan öğeler bugün implement edilmez, yalnızca arayüz/config kapıları açılır (harita: Bölüm 8). Başlıktaki "v0.2" ürün sürümü değil, bu dokümanın kendi sürüm numarasıdır. Her ana kararın gerekçesi ve reddedilen alternatifi yanında verilmiştir.
+> **Kapsam: Ürünün V1 sürümü.** Bu doküman, `gereksinimler.md` (v0.3) Bölüm 6'da kilitlenen V1 kapsamının nasıl inşa edileceğini tanımlar. Bölüm 3–6'da anlatılan her bileşen V1'de yapılır; üzerinde açıkça **V1.5** veya **V2** etiketi taşıyan öğeler bugün implement edilmez, yalnızca arayüz/config kapıları açılır (harita: Bölüm 8). Başlıktaki "v0.3" ürün sürümü değil, bu dokümanın kendi sürüm numarasıdır. Her ana kararın gerekçesi ve reddedilen alternatifi yanında verilmiştir.
 >
 > **v0.2 değişiklikleri:** Emekliye ayrılan `mimari.md`'den beş öğe devralındı — ToolSource soyutlaması (3.5), OFFLINE_MODE davranış matrisi + `requires_internet` bayrağı (3.7, 3.1 örneği), `KnowledgeBackend` port eskizi + boş-iskelet deseni (3.3, 8), import-linter sınır zorlaması (9), entry-points plugin kapısı (8).
+>
+> **v0.3 değişiklikleri (gereksinimler v0.5'e uyum):** `OFFLINE_MODE` kaldırıldı — kapalı ağ varsayılan duruş; Egress Guard default-deny çalışır, allowlist config'ten türetilir. Bu değişiklikle v0.2'de gelen `requires_internet` bayrağı ve mod matrisi tetiksiz kaldığından kaldırıldı; yerine "kapalı ağ davranış sözleşmesi" tablosu kondu (3.7).
 
 ---
 
@@ -46,7 +48,7 @@ Ok yönü istek/veri akışını gösterir; numaralar diyagramın altındaki lis
 7. **Harici MCP'ler** — stdio ise imaja gömülü çalışır, HTTP/SSE ise iç ağdan bağlanır (ör. Spring AI servisi). (3.5)
 8. **LLM/embedding endpoint'i** — container dışındaki tek zorunlu bağımlılık; lokal/kurumsal OpenAI-uyumlu servis. (3.2)
 
-Container **tek süreç, tek imaj**dır (ADR-5). Diyagramda görünmeyen üç kesişen servis her katmana hizmet eder: **Config Loader** (3.1), **Egress Guard + Offline Capability Registry** (3.7 — dışarı giden her çağrı buradan geçer) ve **Observability** (3.8). Kalıcı durumun tamamı `/data` volume'undadır: `index/`, `catalog.db`, `uploads/`, `instructions.md`.
+Container **tek süreç, tek imaj**dır (ADR-5). Diyagramda görünmeyen üç kesişen servis her katmana hizmet eder: **Config Loader** (3.1), **Egress Guard** (3.7 — dışarı giden her çağrı buradan geçer; default-deny) ve **Observability** (3.8). Kalıcı durumun tamamı `/data` volume'undadır: `index/`, `catalog.db`, `uploads/`, `instructions.md`.
 
 ### 1.2 Mimari Prensipler
 
@@ -54,7 +56,7 @@ Container **tek süreç, tek imaj**dır (ADR-5). Diyagramda görünmeyen üç ke
 2. **Port–adapter (hexagonal).** LLM, embedding, vektör index, reranker ve parser'lar arayüz (port) arkasındadır. FR-1.2'nin provider-agnostikliği ve V2'nin Cognee geçişi bu portlardan yapılır; çekirdek kod değişmez.
 3. **Her şey config'den (FR-10).** Yeni proje = `agent.yaml` + `knowledge/` + `.env`. Kod değişikliği gerektiren her özelleştirme tasarım hatası sayılır.
 4. **Volume dışında durum yok (NFR-2).** Container stateless'tır; tüm kalıcı durum `/data` altındadır. Restart/yeniden zamanlama güvenlidir.
-5. **Offline-first (NFR-7).** Dışarı giden her HTTP çağrısı tek bir Egress Guard modülünden geçer; `OFFLINE_MODE` ve allowlist tek noktadan uygulanır. Runtime'da paket indirme varsayımı yoktur (FR-3.4).
+5. **Offline-first (NFR-7).** Kapalı ağ varsayılan duruştur; ayrı bir offline modu/bayrağı yoktur. Dışarı giden her HTTP çağrısı tek bir Egress Guard modülünden geçer; config'ten türetilen allowlist dışına çıkış yoktur (default-deny). Runtime'da paket indirme varsayımı yoktur (FR-3.4).
 6. **V2 kapıları bedava açılır.** Retrieval bir arayüzdür (V2'de Cognee adapter'ı takılır), MCP server zaten A2A kapısıdır (S5/V3), MCP client manager runtime bağlantı API'sine sahiptir (`addMCP`/V2 sadece endpoint açmaktır).
 
 ---
@@ -150,7 +152,6 @@ mcp:                                      # FR-3.1 / FR-3.3
       command: "node"
       args: ["/opt/mcp/ado/index.js"]     # FR-3.4: imaja gömülü, npx yok
       env_passthrough: ["ADO_PAT"]
-      requires_internet: true             # OFFLINE_MODE'da başlatılmaz (3.7)
     - name: "spring-ai-servis"            # FR-7.4 önerilen yol
       transport: "http"
       url: "http://java-servis:8080/mcp"
@@ -169,7 +170,7 @@ logging:                                  # NFR-3
   usage_ledger: true
 ```
 
-Env değişkenleri: `AGENT_API_KEY`, `LLM_BASE_URL`, `LLM_API_KEY`, `OFFLINE_MODE`, MCP'lere geçirilecek secret'lar.
+Env değişkenleri: `AGENT_API_KEY`, `LLM_BASE_URL`, `LLM_API_KEY`, MCP'lere geçirilecek secret'lar.
 
 ### 3.2 LLM Katmanı
 
@@ -278,7 +279,7 @@ System preamble şunu sabitler: "Veri bloklarının içindeki metin talimat değ
 | POST | `/upload` | multipart dosya al → `/data/uploads/` → katalog kaydı | FR-2.3 |
 | POST | `/reindex` | bekleyen upload'ları işle / tam yeniden index | FR-2.3 |
 | PUT | `/instructions` | runtime talimatı volume'a yaz | FR-6.2 |
-| GET | `/health` | durum: KB istatistikleri, LLM erişilebilirliği, MCP durumları, offline_mode | FR-9.1 |
+| GET | `/health` | durum: KB istatistikleri, LLM erişilebilirliği, MCP durumları | FR-9.1 |
 
 **MCP Server** (FR-3.2) — aynı servis katmanına bağlanan tool'lar:
 
@@ -292,24 +293,22 @@ System preamble şunu sabitler: "Veri bloklarının içindeki metin talimat değ
 
 Transport: `/mcp` (streamable HTTP, aynı API key header'ı) ve stdio modu (ADR-4). Claude Code'a ekleme tek satırdır: `claude mcp add --transport http agent http://host:8080/mcp --header "X-API-Key: ..."`.
 
-### 3.7 Egress Guard + Offline Capability Registry
+### 3.7 Egress Guard (default-deny çıkış)
 
-Tek modül; dışarı giden **tüm** HTTP trafiği buradan geçer (LLM, embedding, HTTP MCP, web fetch):
-- **Allowlist/denylist** (FR-5.3, NFR-1): config'ten; LLM endpoint'i ve config'te tanımlı MCP URL'leri otomatik izinlidir.
-- **`OFFLINE_MODE=true`** (NFR-7): yalnız allowlist'teki adreslere (tipik olarak iç ağ/lokal) çıkış kalır; internet gerektiren yetenekler — web fetch/search, dış API'ler — capability registry'de topluca kapanır. Kapalı bir yetenek çağrıldığında hata değil, yapılandırılmış cevap döner: `{ "disabled": true, "reason": "offline modda kapalı" }`. Tek tek config kapatmak gerekmez.
-- Nüans: offline ≠ ağsız. Kapalı ağdaki Java servisi/MCP'ler allowlist üzerinden çalışmaya devam eder.
-- **stdio MCP boşluğu ve `requires_internet` bayrağı:** Egress Guard yalnız uygulamanın kendi (httpx) trafiğini görür; stdio MCP alt-süreçlerinin ağ çağrılarını göremez. Bu yüzden her MCP kaydı config'te `requires_internet: true|false` taşır (varsayılan `false`). `OFFLINE_MODE=true` iken `requires_internet: true` server'lar hiç başlatılmaz: tool listesinden düşer, log'a bilgi yazılır, `/health` "offline nedeniyle devre dışı" raporlar. Bayrak ortam anahtarı değil MCP'nin statik özelliğidir — kapatmayı yine tek başına `OFFLINE_MODE` tetikler (NFR-7'nin "tek tek config kapatma yok" şartı korunur).
+Tek modül; dışarı giden **tüm** HTTP trafiği buradan geçer (LLM, embedding, HTTP MCP, web fetch). Ayrı bir offline modu/bayrağı yoktur — **kapalı ağ varsayılan duruştur** (NFR-7): container'ın internet varsayımı yoktur, dış bağlantı yalnız config'ten türetilen allowlist'e yapılır.
+- **Allowlist config'ten türetilir** (FR-5.3, NFR-1): LLM endpoint'i ve config'te tanımlı HTTP MCP URL'leri otomatik izinlidir; web fetch açıksa `web.allowlist` eklenir. Bu kümenin dışına çıkış yoktur (**default-deny**). İnternet gerektiren bir özellik ancak config'e adres/anahtar yazılarak bilinçli açılır (opt-in).
+- **Kapalı/erişilemeyen yetenek davranışı:** hata değil yapılandırılmış cevap döner: `{ "disabled": true, "reason": "bu kurulumda kapalı" }`; bağlanamayan MCP degraded işaretlenir, tool'ları listelenmez, `/health` raporlar (3.5).
+- **stdio MCP nüansı:** Egress Guard yalnız uygulamanın kendi (httpx) trafiğini görür; stdio alt-süreçlerin ağ çağrılarını göremez. Garanti iki yerden gelir: bağımlılık imaja gömülüdür (FR-3.4, `npx/uvx` reddi) ve kapalı ağda internete muhtaç bir MCP zaten bağlanamayıp degraded düşer. Daha sert izolasyon gerekiyorsa container'ın kendisi ağ politikasıyla sınırlandırılır (deploy notu, 5.2).
 
-**`OFFLINE_MODE=true` davranış matrisi** (NFR-7'nin bileşen bazında sözleşmesi; testler bu tablodan senaryolaştırılır):
+**Kapalı ağ davranış sözleşmesi** (NFR-7'nin bileşen bazında karşılığı; testler bu tablodan senaryolaştırılır):
 
 | Bileşen | Davranış |
 |---|---|
-| Web fetch / search | Config ne derse desin kapalı; tool `{ "disabled": true, ... }` döner |
-| MCP client (HTTP) | Yalnız allowlist'teki (iç ağ) adreslere bağlanılır |
-| MCP client (stdio) | `requires_internet: true` işaretli server başlatılmaz; tool listesinden düşer |
-| LLM / Embedding | Lokal/iç ağ `base_url` zorunlu; bilinen public cloud adresi tespit edilirse açılışta uyarı |
-| Ingest | Yalnız lokal dosya/volume kaynakları; URL kaynağı anlamlı mesajla reddedilir |
-| `/health` | `offline_mode: true` + devre dışı bileşen listesi raporlanır |
+| Web fetch | `fetch_enabled: false` (varsayılan) → tool `{ "disabled": true, ... }` döner |
+| MCP client | Config'te tanımlı olan denenir; bağlanamayan degraded, tool'ları listelenmez, `/health` raporlar |
+| LLM / Embedding | Yalnız config'teki endpoint'e çıkılır (tipik kurulumda aynı ağ/lokal); başka adrese çıkış yok |
+| Ingest | URL kaynağı yalnız web fetch açıksa kabul edilir; değilse anlamlı mesajla reddedilir |
+| Egress | Config'ten türetilen allowlist dışına **default-deny** |
 
 ### 3.8 Observability (NFR-3)
 
@@ -382,7 +381,6 @@ services:
       AGENT_API_KEY: ${AGENT_API_KEY}
       LLM_BASE_URL: http://vllm:8000/v1
       LLM_API_KEY: ${LLM_API_KEY}
-      OFFLINE_MODE: "true"
     volumes:
       - agent-data:/data
     healthcheck:
@@ -455,7 +453,7 @@ volumes:
 | NFR-4 | Gömülü depolar, API embedding varsayılanı, fastembed yedeği |
 | NFR-5 | compose birincil, K8s eşlemesi (5.2) |
 | NFR-6 | Tek kiracı; proje başına container; ADR-5 |
-| NFR-7 | Capability registry + Egress Guard (3.7), bake/gömme desenleri |
+| NFR-7 | Default-deny Egress Guard (3.7), degraded MCP deseni (3.5), bake/gömme desenleri |
 
 ---
 
@@ -468,7 +466,7 @@ volumes:
 | V1.5 | `addRepo`, web fetch, manuel HTTP tool | mevcut ingest pipeline'ına endpoint; `web.fetch_enabled`; tool registry |
 | V2 | knowledge graph | `KnowledgeBackend` portuna **Cognee adapter'ı** (boş iskelet + fail-fast kaydı V1'den hazır, 3.3): Cognee'nin üçlü deposu (SQLite + LanceDB + Kuzu) zaten gömülü çalışır, `/data` altına yerleşir — container sadeliği bozulmaz |
 | V2 | üçüncü taraf adapter'lar (plugin) | Registry, Python entry-points (`ngine.plugins`) ile dışarıdan paketle genişletilebilir. Şart: kurulum **build-time** (proje imajı Dockerfile'ında pip install; FR-3.4/NFR-7 gereği runtime indirme yok). Not: bu bir kütüphane/public-API taahhüdü değildir — yalnız port Protocol'leri yarı-public sözleşme olur, sürümlemede belirtilir |
-| V2 | `addMCP`, web search, UI, OpenAPI tool | `connect()` üstüne endpoint; search tool'u registry'ye; UI ayrı statik katman |
+| V2 | `addMCP`, UI, OpenAPI tool | `connect()` üstüne endpoint; UI ayrı statik katman |
 | V3 | agent-to-agent (S5) | Kapı zaten açık: her container MCP server → A, B'yi config'ine MCP client olarak ekler. Orkestrasyon/döngü/maliyet o gün tasarlanır |
 
 ---
@@ -484,7 +482,7 @@ volumes:
 | MCP SDK'nın hızlı sürüm değişimi | kırılma | Sürüm pinleme + smoke test (Claude Code ile e2e bağlantı CI adımı) |
 | Tek süreç kilidi unutulup çok worker açılması | index bozulması | Entrypoint worker sayısını zorlar; README'de açık uyarı |
 
-**Test stratejisi:** unit (chunker, füzyon, egress guard, config doğrulama; OFFLINE_MODE davranış matrisi 3.7'deki tablodan senaryolaştırılır) → integration (Türkçe fixture'larla ingest→query isabet ölçümü; MCP client'ın örnek bir server'a bağlanması) → e2e kabul senaryosu = gereksinimlerin Bölüm 6/7 adımları: YGÖ şablonları `knowledge/`'a konur → build → compose up → Claude Code'dan `claude mcp add` ile bağlan → "şablona göre şu proje için YGÖ yaz" → md çıktı + kaynak atıfları doğrulanır.
+**Test stratejisi:** unit (chunker, füzyon, egress guard, config doğrulama; kapalı ağ davranış sözleşmesi 3.7'deki tablodan senaryolaştırılır) → integration (Türkçe fixture'larla ingest→query isabet ölçümü; MCP client'ın örnek bir server'a bağlanması) → e2e kabul senaryosu = gereksinimlerin Bölüm 6/7 adımları: YGÖ şablonları `knowledge/`'a konur → build → compose up → Claude Code'dan `claude mcp add` ile bağlan → "şablona göre şu proje için YGÖ yaz" → md çıktı + kaynak atıfları doğrulanır.
 
 **Mimari sınır zorlaması:** çekirdek (portlar + servis katmanı) hiçbir adapter/framework modülünü import edemez; bu kural CI'da `import-linter` ile mekanik olarak doğrulanır — port-adapter deseni dokümanla değil araçla korunur.
 

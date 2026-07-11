@@ -1,6 +1,10 @@
-# Generic AI Agent Container — Gereksinim Dokümanı (v0.3 — Taslak)
+# Generic AI Agent Container — Gereksinim Dokümanı (v0.5 — Taslak)
 
 > Amaç: Herhangi bir kişi veya projenin, kendi bilgi tabanı (knowledge base / knowledge graph), araçları (MCP, repo, web, harici API) ve talimatlarıyla özelleştirebileceği; hem sohbet asistanı hem kod/doküman üretim aracı olarak çalışabilen; ve dışarıya kendisini bir **MCP server** olarak sunabilen generic bir Docker container'ı geliştirmek.
+>
+> **v0.4 değişikliği:** Web search özellik setinden çıkarıldı — bir ürün özelliği değil, ihtiyaç hâlinde FR-3.1 üzerinden config'e eklenen sıradan bir arama MCP'sidir; offline davranışı da diğer MCP'lerle aynı genel kurala tabidir (FR-5.2 kaldırıldı; NFR-7, Bölüm 6 ve yol haritası sadeleştirildi).
+>
+> **v0.5 değişikliği:** `OFFLINE_MODE` kaldırıldı — kapalı ağ, bildirilecek bir mod değil **varsayılan duruştur**: container'ın internet varsayımı yoktur, dış bağlantı yalnız config'te tanımlı adreslere yapılır (default-deny); internet gerektiren özellikler config'le bilinçli açılır (opt-in). NFR-7 yeniden yazıldı.
 
 ---
 
@@ -50,7 +54,7 @@
 
 ### FR-5: Web Erişimi
 - **FR-5.1** Belirli URL'lerin içeriği çekilebilmeli (fetch) ve isteğe bağlı olarak KB'ye eklenebilmeli.
-- **FR-5.2** Web araması (search) — bir arama API'si anahtarı gerektirir (Brave, Tavily, SearXNG vb.), **opsiyonel özellik** olarak tasarlanmalı. Kurumsal kapalı ağlarda kapatılabilmeli.
+- **FR-5.2** *(v0.4'te kaldırıldı — numara, çapraz referanslar bozulmasın diye korunuyor.)* Web araması ürün özelliği değildir; arama ihtiyacı doğarsa bir arama MCP'si (Brave/Tavily/SearXNG MCP vb.) FR-3.1 üzerinden config'e eklenir. Kapalı ağ davranışı da özel kural gerektirmez — erişemeyen her MCP gibi degraded işaretlenir (NFR-7).
 - **FR-5.3** Erişilebilecek domain'ler allowlist/denylist ile sınırlandırılabilmeli (güvenlik).
 
 ### FR-6: Talimat / Persona Yönetimi
@@ -95,7 +99,7 @@
 - **NFR-4 Kaynak:** Tek container, makul RAM ile çalışmalı. Embedding lokalde yapılacaksa CPU'da çalışan küçük bir model tercih edilmeli; aksi halde embedding de LLM sağlayıcısından alınmalı (config). İlk hedef sağlayıcı OpenAI-uyumlu endpoint olduğundan (FR-1.2) varsayılan yol embedding'in de bu endpoint'ten alınmasıdır; lokal CPU modeli yedek seçenektir.
 - **NFR-5 Taşınabilirlik:** Hedef deploy ortamı ikilidir: tek sunucuda docker-compose **ve** kurumsal orkestratör (Kubernetes/OpenShift vb.) — ikisi de desteklenmeli. Temel gereksinim sadece Docker (ve docker-compose) ile çalışabilmek, Kubernetes zorunluluğu olmamalı; tek container + volume + env-config yapısı sayesinde imaj orkestratör üzerinde de değişiklik gerektirmeden koşabilmeli.
 - **NFR-6 Çoklu kullanıcı:** V1'de **tek kiracı / tek KB** varsayımı. Kullanıcı bazlı izolasyon istenirse "proje başına container" modeli kullanılır (zaten tasarımın doğası bu). Container içi multi-tenancy → gereksiz efor, yapılmamalı.
-- **NFR-7 Offline çalışabilirlik:** Container, internetsiz/kapalı ağda tam işlevli çalışabilmeli: LLM ve embedding lokal endpoint'ten (FR-1.2), MCP bağımlılıkları imajdan (FR-3.4), KB imaj/volume'dan. İnternetsiz ortamda çalışıldığı tek bir environment variable ile bildirilebilmeli (ör. `OFFLINE_MODE=true`); bu bayrak set edildiğinde internet gerektiren tüm özellikler (web fetch/search, cloud MCP'ler, dış API çağrıları) otomatik olarak devre dışı kalmalı — tek tek config ile kapatmak gerekmemeli. Devre dışı özellik çağrıldığında uygulama hata üretmemeli; "offline modda kapalı" şeklinde anlamlı bir yanıt dönmeli.
+- **NFR-7 Offline-first varsayılan duruş:** Container'ın internet varsayımı yoktur; kapalı/internetsiz ağda tam işlevlilik **varsayılan durumdur** ve ayrıca bir mod/bayrak gerektirmez. Dış bağlantı yalnız config'te tanımlı adreslerledir: LLM/embedding endpoint'i (FR-1.2 — tipik kurulumda aynı ağda/lokal; internet erişimi olan kurulumda cloud endpoint de config'le mümkündür), config'teki MCP'ler ve açıksa web fetch allowlist'i (FR-5.3). Bunların dışına çıkış yoktur (default-deny). MCP bağımlılıkları imaja gömülüdür, runtime'da paket indirme yoktur (FR-3.4). İnternet gerektiren bir özellik ancak config ile bilinçli açılır (opt-in). Erişilemeyen/kapalı bir bileşen uygulamayı düşürmez: degraded işaretlenir, çağrıldığında hata yerine "bu kurulumda kapalı/erişilemiyor" türünde anlamlı bir yanıt döner.
 
 ---
 
@@ -147,6 +151,6 @@ Dahil:
 6. Basit API key koruması, docker-compose örneği, "kendi projen için özelleştirme" README'si.
 7. Kabul senaryosu: YGÖ şablonları `knowledge/`'a konur → image build → deploy → Claude Code'dan MCP ile bağlanılır → "şablona göre şu proje için YGÖ yaz" → md çıktı üretilir.
 
-V1'e **dahil değil:** knowledge graph, reranking (config anahtarı ayrılır, implementasyon V1.5), web search, `addRepo`/`addMCP` runtime endpoint'leri, docx çıktı, web UI, agent'lar arası iletişim, OpenAPI'den otomatik tool üretimi (V1'de harici servis ihtiyacı MCP client ile karşılanır).
+V1'e **dahil değil:** knowledge graph, reranking (config anahtarı ayrılır, implementasyon V1.5), `addRepo`/`addMCP` runtime endpoint'leri, docx çıktı, web UI, agent'lar arası iletişim, OpenAPI'den otomatik tool üretimi (V1'de harici servis ihtiyacı MCP client ile karşılanır).
 
-**Yol haritası özeti:** V1 (yukarısı) → V1.5 (docx çıktı, reranking, `addRepo`, web fetch, manuel tool tanımı) → V2 (knowledge graph — Cognee tarzı üçlü depolama, `addMCP`, web search, UI, OpenAPI tool'ları) → V3 (agent-to-agent).
+**Yol haritası özeti:** V1 (yukarısı) → V1.5 (docx çıktı, reranking, `addRepo`, web fetch, manuel tool tanımı) → V2 (knowledge graph — Cognee tarzı üçlü depolama, `addMCP`, UI, OpenAPI tool'ları) → V3 (agent-to-agent).
