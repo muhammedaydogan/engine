@@ -1,0 +1,13 @@
+- [ ] C1. uygun. ek olarak agent'a skiller de yüklenebilecek. x y z agentlar a b c de skill olsun. bunlar konfigürasyon üzerinde birbirleriyle kombin yapılabilecek. Bu da şunu gerektirir. dışarıdan (MCP veya REST katmanından) gelen istek toollara veya knowledge-graph core sorgu atmadan önce ara bir katmana uğrar. Burada LangChain benzeri birşey tercih edilebilir. Bu katmanda toollar mcp'ler agent ve skiller ve knowledge-core bağlanır ve burada oluşturulan agent prompt a göre bunları ihtiyaca göre kullanır. agent ve skill dosyaları build-time veya runtime'da yüklenebilir. runtime'da güncellenebilir.
+- [ ] C2. dal+zarf sözleşmesi nedir? konsept ney? ingilizcesini söylersen anlardım muhtemelen.
+- [ ] C3. Burada kullanacağımız şey open-ai destekli LLM modellerinin shimmering effect gibi yerlerde de kullandıkları standart ile aynı olursa iyi olur. sse mi websocket mi bilmem. standart neyse oradan devam edelim.
+- [ ] C4. ne anlattığını anlamadım. Inbound webhook nedir nasıl çalışır HMAC nedir?
+- [ ] C5. uygun zaten sqlite veya postgres db var. db-bağımsız olduğumuz için, bu kolay yapılır. Yani contract olur. sonra sqlite-adapter postgres adapter bunu implement eder.
+- [ ] C6. uygun. ama unutma içten dışa bağımlılık yok. dıştan içe kontraktlar aracılığıyla var. her şey adapter lü.
+- [ ] C7. anlamadım. genericlik mi korunmalı ama bunu içeri almadan nasıl generic olacağını anlamadım. hook falan mı koyacağız? kod yazıp push'layıp konfig'de onStart'ta run'la falan mı diyeceğiz.
+- [ ] C8. anlamadım.
+- [ ] C9. uygun mcp formatına uygun olmalı. MCP'ler bir standart falan var mı acaba?
+- [ ] C10. describe derse hepsi describe(toolNames: string[]) gibi bir sey yaparsa sadece secili olanlar.
+- [ ] C11. böyle bir şeye niye ihtiyaç var anlamadım. diğer bağlı container'lar bir mcp'den ibaret değil mi?
+- [ ] C12. Belirsizlik çok. Buzdolabına.
+- [ ] C13. böyle bir şeye niye ihtiyaç var anlamadım. diğer bağlı container'lar bir mcp'den ibaret değil mi?
