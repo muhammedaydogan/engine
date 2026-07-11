@@ -3,6 +3,10 @@
 > Amaç: Webhook ve "kütüphane/imaj olarak dışa açma" fikirlerini gerçek kullanım
 > senaryolarına çarpıp test etmek. Bu bir gereksinim dokümanı DEĞİLDİR; buradan
 > elenen/onaylanan fikirler gerekçeleriyle `gereksinimler.md`'ye işlenecek.
+>
+> **Kabul çizgisi:** Üç senaryo anahatlarıyla **en geç V3'te** uçtan uca çalışır
+> olmalı; US-3 bu çizgide **centralized/federated** topolojiyle (decentralized
+> sonraya).
 
 ## Nasıl doldurulur
 

@@ -23,6 +23,10 @@
 - Üç senaryo tek ipe diziliyor: US-3 (federasyon) "isabet"i US-2'nin kataloğuna,
   "hız"ı US-1'in pass-through/LLM'siz sorgu fikrine dayanıyor. Sıralama bu yüzden
   US-1 → US-2 → US-3 mekanizmaları şeklinde olmalı.
+- **Kabul çizgisi (kullanıcı kararı):** üç use case **anahatlarıyla en geç V3'te**
+  uçtan uca çalışır olmalı; US-3 bu çizgide **centralized/federated** topolojiyle
+  sınırlıdır (decentralized, çizginin dışında/sonrasında). Bu dokümandaki yerleşim
+  çizgiyi V2'de yakalar — V3'e bir sürümlük tampon kalır.
 
 ## 1. Yetenek envanteri ve fizibilite
 
@@ -111,4 +115,4 @@ Hedef: `gereksinimler.md` v0.3 → v0.4. Ö-numaraları onay/red için kullanıl
 | Ö11 | Yeni FR + S5 revizyonu: **Federasyon modu** — banka otomatik tespit (`describeCapabilities` sunan MCP; `role` işareti yok), katalog federasyonu, fan-out+füzyon+birleşik atıf, timeout+kısmi cevap, toplu health; topoloji V2'de **tek seviye** (hub→banka); kontrol kapsamı **max esneklik**: hub, bankaların tüm MCP tool'larını kullanabilir (LLM'siz `queryKB` = varsayılan hız yolu, `askAgent`/yönetim serbest). Derinlik/döngü guard'ları V3+ (A2A) | C11, C13 | V2 |
 | Ö12 | NFR eki: **base image dağıtımı** — registry yayını, semver, "minor sürümde config kırılmaz" taahhüdü, CHANGELOG | imaj fikri | operasyonel |
 | Ö13 | Bölüm 5 kaydı: **kütüphane fikri buzdolabına** (senaryo desteği yok, gerekçeli); webhook-out da talep doğana kadar buzdolabı | çapraz | — |
-| Ö14 | Yol haritası güncellemesi: V1 kilidi korunur (+Ö2/Ö3 sözleşme istisnaları); V1.5 = Ö3–Ö6, Ö8, Ö9-statik, Ö10-katalog; V2 = Ö7, Ö9-proxy, Ö10-otomatik, Ö11; V3+ = serbest A2A ağları (decentralized) + derinlik/döngü guard'ları (C12) | — | harita |
+| Ö14 | Yol haritası güncellemesi: V1 kilidi korunur (+Ö2/Ö3 sözleşme istisnaları); V1.5 = Ö3–Ö6, Ö8, Ö9-statik, Ö10-katalog; V2 = Ö7, Ö9-proxy, Ö10-otomatik, Ö11; V3+ = serbest A2A ağları (decentralized) + derinlik/döngü guard'ları (C12). **Kabul çizgisi:** üç senaryo anahatlarıyla en geç V3'te çalışır (US-3: centralized/federated) — plan V2'de yakalar, V3 tampondur | — | harita |
