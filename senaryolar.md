@@ -115,7 +115,10 @@ Bu senaryoda routing zekâsı **istemci tarafındadır**; bizim imajın işi ken
    onları MCP client olarak ekler.
 3. Artık **bütün sistemler tek yerden kontrol edilir**: hub gelen soruyu doğru
    bankaya/bankalara yönlendirir, cevapları derler. Sonuç: **çok büyük bir veriye
-   hızlı ve isabetli** ulaşım, tek bağlantı noktasından.
+   hızlı ve isabetli** ulaşım, tek bağlantı noktasından. Kontrolün kapsamı
+   **max esneklik**: bankalar MCP olarak bağlı olduğundan hub, onların yüzeyindeki
+   her tool'u kullanabilir — `askAgent` da olur, normal `query` de; upload/reindex
+   gibi opsiyonel endpoint'ler zaten mevcut, hub istediğini onlarla yapar.
 
 Not: Hub da aynı generic imajdır — yeni bir ürün değil, 10. konfigürasyon.
 Bu, gereksinimlerdeki S5'in ("container'lar arası iletişim", V3'e ertelenmişti)
@@ -126,9 +129,9 @@ somut hâlidir.
 | Kim | Çok sistemli bir müşteri kurum; 9 domain veri bankası imajı + 1 hub imajı; son kullanıcılar ve harici sistemler hub'a bağlanır |
 | Ortam | Değişken (her deployment farklı olabilir) |
 | Tetik | Veri bankaları çoğalıp silolaştıkça tek kapı ihtiyacı doğar; kurulum bir kez, sonrasında her sorguda hub route eder |
-| Bugün neden olmuyor | (a) S5 bilinçli olarak kapsam dışı/V3 — mekanik olarak mümkün (hub, 9 bankayı MCP client olarak ekler; kapı bedava) ama bunun için tasarlanmış hiçbir şey yok; (b) hub'ın "isabetli" route etmesi her bankanın yetenek kataloğuna muhtaç — US-2'deki tarif/katalog mekanizması olmadan hub 9 kapıdan hangisini çalacağını bilemez; (c) "hızlı" olması ucuz sorgu moduna muhtaç — naif zincirde her bankada ayrı LLM döngüsü döner (maliyet ve gecikme katlanır); hub'ın bankalara LLM'siz, pass-through/query-only inebilmesi gerekir (US-1 akrabası); (d) derinlik/döngü guard'ı yok (A→B→A çevrimi, max hop, timeout, kısmi cevap politikası); (e) bankalar arası birleşik kaynak atfı yok — cevap "hangi bankanın hangi dokümanından" diyebilmeli; (f) 9 bağlantının sağlığı tek yerden izlenemiyor — hub `/health`'inin spoke durumlarını toplaması gerekir |
+| Bugün neden olmuyor | (a) S5 bilinçli olarak kapsam dışı/V3 — mekanik olarak mümkün (hub, 9 bankayı MCP client olarak ekler; kapı bedava) ama bunun için tasarlanmış hiçbir şey yok; (b) hub'ın "isabetli" route etmesi her bankanın yetenek kataloğuna muhtaç — US-2'deki tarif/katalog mekanizması olmadan hub 9 kapıdan hangisini çalacağını bilemez; (c) "hızlı" olması ucuz sorgu moduna muhtaç — naif zincirde her bankada ayrı LLM döngüsü döner (maliyet ve gecikme katlanır); hub'ın bankalara LLM'siz, pass-through/query-only inebilmesi gerekir (US-1 akrabası); (d) derinlik/döngü guard'ı yok — karar: tek seviyeli hub→banka topolojisinde gereksiz, V3+/A2A gündemi; V2'de timeout + kısmi cevap politikası yeter; (e) bankalar arası birleşik kaynak atfı yok — cevap "hangi bankanın hangi dokümanından" diyebilmeli; (f) 9 bağlantının sağlığı tek yerden izlenemiyor — hub `/health`'inin spoke durumlarını toplaması gerekir |
 | Başarı işareti | Tek bağlantı noktası; sorular doğru bankaya düşüyor (isabet ölçülebilir); gecikme kabul edilebilir; cevapta banka+doküman atfı var; 10. banka eklemek = hub config'ine bir kayıt + katalog tazeleme; hub `/health` 9 bankanın durumunu gösteriyor |
-| İlgili fikir | imaj (genericliğin nihai testi: hub = aynı imajın 10. konfigürasyonu); + yeni fikirler: federasyon/hub modu, katalog federasyonu (US-2'nin üstüne), bankalara ucuz/LLM'siz sorgu modu (US-1 pass-through akrabası), derinlik-döngü guard'ları, toplu health. Açık soru: "kontrol" salt sorgu mu, yönetim de mi (hub üzerinden bankaya upload/reindex/talimat)? → ? |
+| İlgili fikir | imaj (genericliğin nihai testi: hub = aynı imajın 10. konfigürasyonu); + yeni fikirler: federasyon/hub modu, katalog federasyonu (US-2'nin üstüne), bankalara ucuz/LLM'siz sorgu modu (US-1 pass-through akrabası), timeout/kısmi-cevap politikası (derinlik-döngü guard'ları V3+'a ertelendi), toplu health. **Karar:** "kontrol" = max esneklik — hub, bankaların MCP yüzeyindeki her tool'u kullanabilir (`queryKnowledgeBase`, `askAgent`, upload/reindex vb.); federasyon yüzeyi daraltmaz, LLM'siz `queryKB` yalnız varsayılan hız yoludur |
 | Sıklık / önem | Kurulum nadir; sorgu sürekli. Önem: stratejik — ürünün çok-imajlı ölçek hikâyesini tanımlıyor |
 
 ---

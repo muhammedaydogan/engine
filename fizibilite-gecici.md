@@ -40,8 +40,8 @@ Efor ölçeği (tek kişi, göreli): **S** küçük (günler) · **M** orta (~ha
 | C8 | Konfigüre edilebilir MCP tool projeksiyonu (`expose.tools[]`: ad, açıklama, talimat, hedef: kb_query \| agent \| mcp_proxy \| http) | US-2 | Orta — SDK dinamik tool destekler; 5 generic tool "varsayılan projeksiyon"a dönüşür | M | Statik V1.5, mcp_proxy V2 |
 | C9 | Yetenek kataloğu (`describeCapabilities` tool + `/capabilities`; MCP server instructions) | US-2, US-3 | Kolay — config+katalog+KB istatistiği derlemesi | S | V1.5 |
 | C10 | Otomatik tarif üretimi (`agent describe` build / `POST /describe` runtime; utility LLM; **manual > auto > fallback** katmanları) | US-2 | Orta — LLM'li tarama; kalite riski var | M | Katalog şeması V1.5, LLM'li üretim V2 |
-| C11 | Federasyon/hub modu (MCP client `role: bank`; katalog federasyonu; banka seçimi → paralel LLM'siz `queryKB` fan-out → füzyon; birleşik atıf `banka:doc`) | US-3 | Orta-büyük — spoke tarafı bedava (D akışı), iş hub'da | M-L | V2 |
-| C12 | Derinlik/döngü guard'ları (`X-Agent-Depth`, max_depth, timeout, kısmi cevap politikası) | US-3 | Kolay | S | V2 (C11 ile) |
+| C11 | Federasyon/hub modu (banka = `describeCapabilities` sunan MCP — otomatik tespit, ayrıca config işareti yok; katalog federasyonu; banka seçimi → paralel LLM'siz `queryKB` fan-out → füzyon; birleşik atıf `banka:doc`; timeout + kısmi cevap politikası; topoloji V2'de tek seviye hub→banka) | US-3 | Orta-büyük — spoke tarafı bedava (D akışı), iş hub'da | M-L | V2 |
+| C12 | Derinlik/döngü guard'ları (`X-Agent-Depth`, max_depth, çevrim tespiti) | US-3 | Kolay ama bugün gereksiz — tek seviyeli hub→banka'da çevrim ancak yanlış config'le oluşur | S | **V3+ (A2A ile)**; timeout/kısmi cevap C11'de kalır |
 | C13 | Toplu health (hub `/health` spoke durumlarını toplar) | US-3 | Kolay — degraded raporlama zaten var | S | V2 (C11 ile) |
 
 ## 2. Senaryo bazında hüküm
@@ -60,19 +60,24 @@ tarif kalitesi (C10) — hafifletme: katman zinciri (elle tarif > otomatik > jen
 fallback) + `--review` çıktısıyla insan onayı. Mimari felsefeyle (env > yaml >
 varsayılan) birebir aynı desen.
 
-**US-3 (9 banka + 1 hub): YAPILABİLİR — C11+C12+C13; C9/C10 ve C2'ye bağımlı.**
+**US-3 (9 banka + 1 hub): YAPILABİLİR — C11+C13 (C12 → V3+); C9/C10 ve C2'ye bağımlı.**
 Spoke tarafı bugünkü tasarımda hazır (MCP server + LLM'siz `queryKnowledgeBase` =
 mimarideki D akışı). Bütün iş hub tarafında: katalog-tabanlı banka seçimi (utility
 model), paralel fan-out, füzyon, birleşik atıf. En büyük risk isabet — katalog
 kalitesine dayanır → C9/C10 önkoşuldur. İkinci risk gecikme → varsayılan yol
-"LLM'siz queryKB fan-out", `askAgent` zinciri opsiyonel ve depth-guard'lı.
+"LLM'siz queryKB fan-out" (timeout + kısmi cevap politikasıyla), `askAgent`
+zinciri opsiyonel. Topoloji V2'de tek seviyedir (hub → banka; federated/centralized);
+decentralized/mesh ve onunla gelen derinlik-döngü guard'ları A2A sonrası (V3+)
+gündemidir — bugün tasarlamak zaman kaybı.
 Hub = aynı generic imajın 10. konfigürasyonu; yeni ürün yok. Gereksinimlerdeki
 S5 "kapsam dışı/V3" statüsü revize edilmeli (federasyon → V2; serbest A2A ağları V3'te kalır).
 
-**Açık soru (US-3 kartında):** "tek yerden kontrol" salt sorgu mu, yönetim de mi
-(hub üzerinden bankalara upload/reindex)? Fizibilite iki hâlde de değişmiyor
-(yönetim = spoke'un mevcut MCP tool'larını proxy'lemek, C8'in mcp_proxy türü);
-kapsam kararı gereksinime yazılırken netleşmeli.
+**Karar (açık soru kapandı):** "tek yerden kontrol" = **max esneklik**. Bankalar
+MCP olarak bağlı olduğundan hub, onların yüzeyindeki her tool'u kullanabilir —
+`queryKnowledgeBase`, `askAgent` ve upload/reindex gibi opsiyonel yönetim
+endpoint'leri dahil. Federasyon tasarımı yüzeyi daraltmaz; LLM'siz `queryKB`
+fan-out yalnız varsayılan hız yoludur, `askAgent`/yönetim çağrıları hub
+agent'ının tercihine açıktır. Ö11'in kapsam cümlesi buna göre yazılır.
 
 ## 3. Çapraz bulgular
 
@@ -103,7 +108,7 @@ Hedef: `gereksinimler.md` v0.3 → v0.4. Ö-numaraları onay/red için kullanıl
 | Ö8 | FR-4 eki: **repo özet wiki reçetesi** — DeepWiki-muadili harici MCP + webhook tetikli güncelleme, `examples/` altında uçtan uca örnek (çekirdeğe kod girmez) | C7 | V1.5 (döküman) |
 | Ö9 | FR-3.2 revizyonu: **konfigüre edilebilir MCP yüzeyi** — `expose.tools[]` projeksiyonu (kb_query\|agent\|mcp_proxy\|http), server instructions, ad/açıklama/talimat config'den; bugünkü 5 tool varsayılan set | C8 | Statik V1.5, proxy V2 |
 | Ö10 | Yeni FR: **Yetenek kataloğu + otomatik tarif** — `describeCapabilities` + `/capabilities`; tarif katmanları manual > auto > fallback; `agent describe` (build) / `POST /describe` (runtime, utility model) | C9, C10 | Katalog V1.5, LLM'li üretim V2 |
-| Ö11 | Yeni FR + S5 revizyonu: **Federasyon modu** — MCP client `role: bank`, katalog federasyonu, fan-out+füzyon+birleşik atıf, depth guard, toplu health | C11–C13 | V2 |
+| Ö11 | Yeni FR + S5 revizyonu: **Federasyon modu** — banka otomatik tespit (`describeCapabilities` sunan MCP; `role` işareti yok), katalog federasyonu, fan-out+füzyon+birleşik atıf, timeout+kısmi cevap, toplu health; topoloji V2'de **tek seviye** (hub→banka); kontrol kapsamı **max esneklik**: hub, bankaların tüm MCP tool'larını kullanabilir (LLM'siz `queryKB` = varsayılan hız yolu, `askAgent`/yönetim serbest). Derinlik/döngü guard'ları V3+ (A2A) | C11, C13 | V2 |
 | Ö12 | NFR eki: **base image dağıtımı** — registry yayını, semver, "minor sürümde config kırılmaz" taahhüdü, CHANGELOG | imaj fikri | operasyonel |
 | Ö13 | Bölüm 5 kaydı: **kütüphane fikri buzdolabına** (senaryo desteği yok, gerekçeli); webhook-out da talep doğana kadar buzdolabı | çapraz | — |
-| Ö14 | Yol haritası güncellemesi: V1 kilidi korunur (+Ö2/Ö3 sözleşme istisnaları); V1.5 = Ö3–Ö6, Ö8, Ö9-statik, Ö10-katalog; V2 = Ö7, Ö9-proxy, Ö10-otomatik, Ö11; V3 = serbest A2A ağları | — | harita |
+| Ö14 | Yol haritası güncellemesi: V1 kilidi korunur (+Ö2/Ö3 sözleşme istisnaları); V1.5 = Ö3–Ö6, Ö8, Ö9-statik, Ö10-katalog; V2 = Ö7, Ö9-proxy, Ö10-otomatik, Ö11; V3+ = serbest A2A ağları (decentralized) + derinlik/döngü guard'ları (C12) | — | harita |
