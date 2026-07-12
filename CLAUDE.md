@@ -1,0 +1,1 @@
+Bu repoda üretilen ürünü diğer geliştiricler kullanacak. Dolayısıyla sade, modüler, optimize, hızlı, esnek ve idame etmesi kolay çözümler üretilmeliyiz.
